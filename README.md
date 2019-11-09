@@ -8,7 +8,7 @@ Want to continue to extend this to the point where characters and creatures can 
 
 
 ## High Level Capabilities
-  - Dice Roll Simulation (core)
+  - Dice Roll Simulation __(core)__
   - Nice Abstraction of Characters, Weapons, Etc. __(nice to have)__
   - Graphing / Nice output __(nice to have)__
     - pyplot etc

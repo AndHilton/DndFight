@@ -4,7 +4,7 @@ handles information related to player character sheets
 
 from collections import deque
 
-from Dnd_Dice import Dice
+from DndDice import Dice
 import AbilityScores as scores
 from AbilityScores import AbilityIds, AbilityScores
 from AttackAction import attackFromString
@@ -55,9 +55,9 @@ def parseCharacterData(dataList):
   return dataDict
 
 def generateCharacterStatBlock(charData):
-  availableKeys = set(charData.keys)
+  availableKeys = set(charData.keys())
   necessaryKeys = set(['name','level','hp','ac','ability-scores','attacks'])
-  assert necesessaryKeys in availableKeys, "don't have necessary character data"
+  assert necessaryKeys <= availableKeys, "don't have necessary character data"
   pcStats = PlayerCharacter(charData['name'],charData['level'],charData['hp'],charData['ac'],charData['ability-scores'])
   for attack in charData['attacks']:
     pcStats.addAttackAction(attack)

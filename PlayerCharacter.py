@@ -2,7 +2,7 @@
 classes and functions to represent player character stats
 """
 
-from Dnd_Dice import Dice
+from DndDice import Dice
 from AttackAction import AttackAction
 from StatBlock import StatBlock
 from AbilityScores import *  
@@ -20,8 +20,15 @@ class PlayerCharacter(StatBlock):
   """
 
   def __init__ (self, name, level, hp, ac, abilityScores):
-    self.level = level
     super().__init__(name,hp,ac,abilityScores)
+    self.level = level
+    self.hitDice = []
+
+  def addHitDice(self,hitDice):
+    """
+    adds hit dice
+    """
+    self.hitDice.append(hitDice)
 
 
   def addClassLevel(self, classname):

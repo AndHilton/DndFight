@@ -3,7 +3,7 @@ encapsulates ability scores, and modifiers
 """
 
 from collections import namedtuple
-from Dnd_Dice import D20
+from DndDice import D20
 
 # the ability ids
 AbilityIds = ( 'str', 'dex', 'con', 'wis', 'int', 'cha' )

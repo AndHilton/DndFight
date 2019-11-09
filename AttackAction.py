@@ -3,7 +3,7 @@ weapon and attacks for dnd simulator
 """
 from collections import namedtuple
 
-import Dnd_Dice as DnD
+import DndDice as DnD
 from AbilityScores import modStr
 
 DamageTypes = sorted(['piercing','slashing','bludeoning','force','fire','poison','acid','cold','lightning','radiant'])
@@ -26,23 +26,35 @@ class AttackAction():
   def __repr__(self):
     return self.name
 
-  def rollAttack(self):
-    atk = D20.roll()
-    if atk == 20:
+
+  def rollAttack(self,advantage='none'):
+    """
+    rolls an attack with the appropriate advantage
+    """
+    atk = DnD.rollD20(advantage)
+
+    if atk == DnD.CRITICAL_SUCCESS:
       isCrit = True
     else:
       isCrit = False
     return DnD.AttackRoll(atk+self.attackMod, isCrit)
 
   def rollDamage(self, isCritical=False, critical=DnD.default_critical):
+    """
+    performs a damage roll and adds modifiers
+    """
     if isCritical:
-      base = critical(self.dice)
+      base = critical(self.damageDice)
     else:
       base = self.damageDice.roll() + self.damageMod
     return base + self.damageMod
 
+# Helper Functions
 
 def attackFromString(string):
+  """
+  takes a string as input and returns an AttackAction
+  """
   fields = string.split(',')
   name = fields[0]
   dice = DnD.diceFromString(fields[2])
@@ -50,17 +62,3 @@ def attackFromString(string):
   dmgType = fields[4]
   return AttackAction(name,dice,modifiers,dmgType)
 
-# TODO change this to an item
-class WeaponAttack(AttackAction):
-  
-  description = ""
-
-  def addDescription(self, description):
-    self.description.append(description)
-
-  def enchant(self, level):
-    self.isMagic = True
-    self.level = level
-    self.attackMod += level
-    self.damageMod += level
-    self.description.append(f" level-{level} magic weapon")
