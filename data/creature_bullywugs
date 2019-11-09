@@ -1,0 +1,13 @@
+monster-block:
+  name: bullywug
+  hp: 20
+  ac: 13
+  ability-scores:
+    str: 11
+    dex: 10
+    con: 12
+    wis: 9
+    int: 7
+    cha: 8
+  attacks: 1
+    bite, 1, 1d6, 0, bludgeoning

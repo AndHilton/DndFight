@@ -1,0 +1,41 @@
+template
+
+player-character:
+  name:
+  race:
+  alignment:
+  level:
+  class:
+  hit-dice:
+  hp:
+  ac:
+  ability-scores:
+    str:
+    dex:
+    con:
+    int:
+    wis:
+    cha:
+  attacks:
+
+
+format
+
+player-character:
+  name: 'string'
+  race: 'string'
+  alignment: 'string'
+  level: 'num'
+  class: ['string','num']
+  hit-dice: 'num'd'num'
+  hp: 'num'
+  ac: 'num'
+  ability-scores:
+    str: 'num'
+    dex: 'num'
+    con: 'num'
+    int: 'num'
+    wis: 'num'
+    cha: 'num'
+  attacks:
+    'string', 'num', 'num'd'num', 'num', 'string'

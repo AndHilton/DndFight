@@ -1,0 +1,19 @@
+player-character:
+  name: Brennan Billson
+  race: wood elf
+  alignment: NA
+  level: 4
+  class: [ranger, 4]
+  hit-dice: [4d10]
+  hp: 32
+  ac: 16
+  ability-scores:
+    str: 12
+    dex: 18
+    con: 13
+    int: 10
+    wis: 16
+    cha: 8
+  attacks: 2
+    shortsword, 6, 1d6, 4, piercing
+    longbow, 8, 1d8, 4, piercing

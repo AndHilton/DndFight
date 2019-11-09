@@ -1,0 +1,20 @@
+player-character:
+  name: Graham Rhictor
+  race: human
+  alignment: NA
+  level: 4
+  class: [wizard, 4]
+  hit-dice: [4d6]
+  hp: 26
+  ac: 13
+  ability-scores:
+    str: 8
+    dex: 16
+    con: 14
+    int: 16
+    wis: 10
+    cha: 8
+  attacks: 3
+    halberd, -1, 1d10, -1, piercing
+    chill touch, 5, 1d8, 0, necrotic
+    ray of sick, 5, 2d8, 0, necrotic

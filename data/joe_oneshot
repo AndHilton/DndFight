@@ -1,0 +1,21 @@
+player-character:
+  name: Adran Nailo
+  race: drow
+  alignment: NA
+  level: 4
+  class: [paladin, 4]
+  hit-dice: 4d10
+  hp: 35
+  ac: 16
+  ability-scores:
+    str: 15
+    dex: 14
+    con: 14
+    int: 8
+    wis: 10
+    cha: 14
+  attacks: 4
+    polearm butt end, 4, 1d4, 2, bludgeoning
+    glaive, 4, 1d10, 2, slashing
+    handaxe, 4, 1d6, 2, slashing
+    greatsword, 4, 2d6, 2, slashing

@@ -1,0 +1,20 @@
+player-character:
+  name: Bill the UnNam'd
+  race: human
+  alignment: NA
+  level: 4
+  class: [fighter, 4]
+  hit-dice: [4d10]
+  hp: 36
+  ac: 18
+  ability-scores:
+    str: 18
+    dex: 9
+    con: 15
+    int: 13
+    wis: 11
+    cha: 14
+  attacks: 3
+    longsword, 6, 1d8, 4, slashing
+    pike, 6, 1d10, 4, piercing
+    javelin, 6, 1d6, 4, piercing

@@ -1,0 +1,19 @@
+player-character:
+  name: Gabrick the Hound
+  race: dwarf
+  alignment: NN
+  level: 4
+  class: [warlock, 4]
+  hit-dice: [4d8]
+  hp: 31
+  ac: 14
+  ability-scores:
+    str: 17
+    dex: 12
+    con: 14
+    int: 8
+    wis: 11
+    cha: 14
+  attacks: 2
+    pact longbow, 6, 1d8, 4, piercing
+    pact longsword, 6, 1d10, 4, slashing

@@ -1,0 +1,22 @@
+player-character:
+  name: Harold
+  race: high elf
+  alignment: LE
+  level: 4
+  class: [barbarian, 1], [wizard, 3]
+  hit-dice: [1d12],[3d6]
+  hp: 32
+  ac: 15
+  ability-scores:
+    str: 8
+    dex: 17
+    con: 15
+    int: 16
+    wis: 8
+    cha: 8
+  attacks: 5
+    shortsword, 3, 1d6, 1, piercing
+    shortsword (offhand), 3, 1d6, 0, piercing
+    whip, 3, 1d4, 1, slashing
+    whip (offhand), 3, 1d4, 0, slashing
+    ray of frost, 4, 1d8, 0, cold
