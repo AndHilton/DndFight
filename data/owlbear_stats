@@ -1,0 +1,15 @@
+monster-block:
+  name: owlbear
+  hp: 59
+  ac: 13
+  ability-scores:
+    str: 20
+    dex: 12
+    con: 17
+    wis: 12
+    int: 3
+    cha: 7
+  attacks: 2
+    beak, 7, 1d10, 5, piercing
+    claws, 7, 2d8, 5, slashing
+

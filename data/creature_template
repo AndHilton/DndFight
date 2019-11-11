@@ -1,0 +1,14 @@
+monster-block:
+  name:
+  hp:
+  ac:
+  ability-scores:
+    str:
+    dex:
+    con:
+    wis:
+    int:
+    cha:
+  attacks:
+
+
