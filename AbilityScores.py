@@ -3,7 +3,7 @@ encapsulates ability scores, and modifiers
 """
 
 from collections import namedtuple
-from DndDice import D20
+from DndDice import Dice
 
 # the ability ids
 AbilityIds = ( 'str', 'dex', 'con', 'wis', 'int', 'cha' )
@@ -71,6 +71,19 @@ standard_score_distribution = [ 15, 14, 13, 12, 10, 8 ]
 
 def assignStandardScores(abilityPriority):
   pass
+
+def roll4TakeTop():
+  """
+  rolls 4d6, drops the bottom dice
+  useful for character creation
+  """
+  dice = Dice(1,6)
+  diceResults = [ dice.roll() for i in range(4) ]
+  diceResults.remove(min(diceResults))
+  return sum(diceResults)
+
+def generateRandomScores():
+  return [ roll4TakeTop() for i in range(len(AbilityIds))]
 
 downTheLine = assignScores(standard_score_distribution)
 ability_scores_all_tens = assignScores([10 for ability in AbilityIds])

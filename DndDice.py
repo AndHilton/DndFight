@@ -39,6 +39,9 @@ class Dice(namedtuple('DamageDice',['num','value'])):
       total += rand.randint(1,self.value)
     return total
   
+  def average(self):
+    return self.num * (sum(range(1,self.value+1)) // self.value)
+
   # making it a class so I can overwrite the str representation of the namedtuple class
   def __str__(self):
     return f"{self.num}d{self.value}"
