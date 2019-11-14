@@ -1,4 +1,4 @@
-template
+#template
 
 player-character:
   name:
@@ -16,26 +16,26 @@ player-character:
     int:
     wis:
     cha:
-  attacks:
+  attacks: 0
 
 
-format
+#format
 
-player-character:
-  name: 'string'
-  race: 'string'
-  alignment: 'string'
-  level: 'num'
-  class: ['string','num']
-  hit-dice: 'num'd'num'
-  hp: 'num'
-  ac: 'num'
-  ability-scores:
-    str: 'num'
-    dex: 'num'
-    con: 'num'
-    int: 'num'
-    wis: 'num'
-    cha: 'num'
-  attacks:
-    'string', 'num', 'num'd'num', 'num', 'string'
+#player-character:
+#  name: 'string'
+#  race: 'string'
+#  alignment: 'string'
+#  level: 'num'
+#  class: ['string','num']
+#  hit-dice: 'num'd'num'
+#  hp: 'num'
+#  ac: 'num'
+#  ability-scores:
+#    str: 'num'
+#    dex: 'num'
+#    con: 'num'
+#    int: 'num'
+#    wis: 'num'
+#    cha: 'num'
+#  attacks:
+#    'string', 'num', 'num'd'num', 'num', 'string'

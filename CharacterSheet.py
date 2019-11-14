@@ -3,6 +3,7 @@ handles information related to player character sheets
 """
 
 from collections import deque
+import re
 
 from DndDice import Dice
 import AbilityScores as scores
@@ -11,6 +12,17 @@ from AttackAction import attackFromString
 from PlayerCharacter import PlayerCharacter
 
 dataKeys = ['name', 'race', 'alignment', 'level', 'class', 'hit-dice', 'hp', 'ac', 'ability-scores', 'attacks']
+
+TemplateFile = 'data/template_player_character'
+
+with open(TemplateFile) as f:
+  dataLines = f.readlines()
+
+def linefilter(line):
+  parts = line.partition('#')
+  isComment = re.search("^\s*#",line)
+  isWhitespace = line.isspace()
+  return not (isComment or isWhitespace)
 
 def readCharacterSheet(filename):
   with open(filename,'r') as f:

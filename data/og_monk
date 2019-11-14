@@ -1,0 +1,18 @@
+player-character:
+  name: og
+  race: half-orc
+  alignment: NG
+  level: 5
+  class: [monk,5]
+  hit-dice: 5d8
+  hp: 33
+  ac: 15
+  ability-scores:
+    str: 13
+    dex: 15
+    con: 12
+    int: 8
+    wis: 16
+    cha: 11
+  attacks: 1
+    martial arts, 5, 1d6, 2, bludeoning
