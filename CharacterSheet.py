@@ -74,3 +74,7 @@ def generateCharacterStatBlock(charData):
   for attack in charData['attacks']:
     pcStats.addAttackAction(attack)
   return pcStats  
+
+def playerCharacterFromFile(filename):
+  characterData = readCharacterSheet(filename)
+  return generateCharacterStatBlock(characterData)

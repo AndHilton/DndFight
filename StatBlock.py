@@ -60,6 +60,9 @@ class StatBlock():
     """
     return AbilityScores(*self.abilities.values())
 
+  def getAbilityScores(self):
+    return [ ability.score for ability in self.scores() ]
+
   def isDead(self):
     """
     checks to see if the character is at 0 hp
@@ -97,6 +100,15 @@ class StatBlock():
       self.currentAttack = self.attacks[index]
     except IndexError:
       raise ValueError("Not a valid attack")
+
+  def getAttack(self,index=None):
+    if not index:
+      return self.currentAttack
+    else:
+      try:
+        return self.attacks[index]
+      except IndexError:
+        raise ValueError("Not a valid attack")
 
   # methods for performing combat actions
 
