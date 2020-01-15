@@ -23,49 +23,8 @@ def set_verbose(verbose=True):
   else:
     VERBOSE = False
     battleLog = logNone
-    
-
-"""
-* Encounter Statistics :
-
-** Stats By Encounter :
-*** - Number of Units
-*** - Winning Side :
-**** - Number of Survivors
-**** - Remaining HP
-*** - Number of Rounds
-
-** Stats By Side :
-*** - Total HP
-*** - Average HP
-*** - Average AC
-*** - Total Damage
-*** - Average Damage
-*** - Average Survival (in Rounds)
-*** - Total Attacks
-*** - Total Hits
-*** - Average Hit %
-
-** Stats By Unit :
-*** - HP
-*** - AC
-*** - Initiative Order
-*** - Survival (in Rounds)
-*** - Number of Attacks
-*** - Number of Hits
-*** - Hit %
-*** - Average Damage / Hit
-"""
-
-class SimulationArmy():
 
   """
-  Simulates a "side" of an encouter
-  
-  Members:
-  list of alive members
-  list of dead members
-
   -- Statistics --
   Before Encounter:
   - Number of Units
@@ -83,6 +42,81 @@ class SimulationArmy():
   - Total Hits
   - Average Hit %
   """
+
+## TODO temporarily (?) moving everything to Encounter module while I 
+#       reorganize structure of encounter simulation
+class SimUnit(StatBlock):
+  """
+  Wrapper around the StatBlock to aid in statistic collection
+  """
+  def __init__(self, stats, team):
+    self.name = stats.name
+    self.maxHp = stats.maxHp
+    self.hp = stats.hp
+    self.ac = stats.ac
+    self.speed = stats.speed
+    self.attacks = stats.attacks
+    self.abilities = stats.abilities
+    self.initiative = None
+    self.team = team
+    self.target = None
+
+  def __copy__(self):
+    return SimUnit(copy(self.getStats()),self.team)
+
+  def getStats(self):
+    currentStats = StatBlock(self.name,
+                             self.maxHp,
+                             self.ac,
+                             self.getAbilityScores())
+    currentStats.hp = self.hp
+    return currentStats
+
+
+  def rollInitiative(self):
+    if not self.initiative:
+      self.initiative = self.abilityCheck("dex")
+    return self.initiative
+
+  def makeTurn(self):
+    """
+    TODO
+    figure out a way to construct a "turn" as a collection of actions
+    want to future proof this somewhat against extra-attack
+    construct a series of closures?
+    have a member called "action"
+    """
+    pass
+
+  def getTarget(self):
+    if not self.target:
+      self.chooseTarget()
+    return self.target
+
+  def chooseTarget(self):
+    # randomly
+    try:
+      self.target = rand.choice(team.enemies)
+    except IndexError:
+      self.target = None
+    return self.target
+
+  def addEnemies(self, *enemies):
+    self.enemies.extend(enemies)
+
+  def removeEnemy(self, enemy):
+    self.enemies.remove(enemy)
+
+
+class SimulationArmy():
+
+  """
+  Simulates a "side" of an encouter
+
+  Members:
+  list of alive members
+  list of dead members
+  """
   
   def __init__(self, statblocks):
     self.squad = [ SimUnit(stat) for stat in statblocks ]  # TODO : implement the SimUnit Class
@@ -93,6 +127,7 @@ class SimulationArmy():
     self.avgHP = self.totalHP / self.size
     self.avgAC = sum([unit.ac for unit in statblocks]) / self.size # TODO : check unit api
     self.currentDamage = 0
+    self.enemies = []
 
   def addEnemies(self, enemies):
     for unit in self.squad:
@@ -119,6 +154,7 @@ class InitiativeOrder():
   def __init__(self):
     self.order = []
     self.current = iter(self.order)
+    self.complete = False
     
   def __iter__(self):
     aCopy = copy(self)
@@ -153,15 +189,51 @@ def simualateOneRound(initiative):
   done = false
   for unit in initiative:
     unit.survival += 1
-    # get side
-    # get current enemy
+    # get current enemy, maybe this happens internal to the sim unit
     # attack enemy
+    # NOTE let each unit decide what their turn looks like,
+    #  simulation just iterates until the unit determines it's turn is over
+    # TODO future proof against multi-attack, other kinds of actions
+    # TODO formalize removing a unit
     # update current side totals
     # enemy dead ? remove from initiative order
     pass
   done = false # TODO : is one side dead
   return done
 
+"""
+* Encounter Statistics :
+
+** Stats By Encounter :
+*** - Number of Units
+*** - Winning Side :
+**** - Number of Survivors
+**** - Remaining HP
+*** - Number of Rounds
+
+** Stats By Side :
+*** - Total HP
+*** - Average HP
+*** - Average AC
+*** - Total Damage
+*** - Average Damage
+*** - Average Survival (in Rounds)
+*** - Total Attacks
+*** - Total Hits
+*** - Average Hit %
+
+** Stats By Unit :
+*** - HP
+*** - AC
+*** - Initiative Order
+*** - Survival (in Rounds)
+*** - Number of Attacks
+*** - Number of Hits
+*** - Hit %
+*** - Average Damage / Hit
+"""
+
+# create data structs for stats/results
 
 def simulateBasicEncounter(*armyStats):
 
@@ -177,9 +249,26 @@ def simulateBasicEncounter(*armyStats):
   ## done?
   
   # return StatsToCapture
-  pass
 
+  """
+  TODO
+  1 - initialize all sides, roll initiative
+  2 - initalize return data
+  3 - while encounter not done
+  4 - run a single round of initiative
+  """
+  armies = [ SimulationArmy(stats) for stats in armyStats ]
 
+  # initialize the armies
+  #   - make sure they have all the appropriate enemies
+  initiative = InitiativeOrder()
+  # determine initiative order
+  done = False
+  while not done:
+    done = simualateOneRound(initiative)
+  # collect results
+  results = None
+  return results
   
 if __name__ == "__main__":
   set_verbose(True)
