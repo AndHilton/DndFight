@@ -5,7 +5,7 @@ classes, data types, and functions to represent creatures and characters
 from collections import namedtuple
 
 import DndDice as DnD
-from AttackAction import AttackAction
+from AttackAction import AttackAction, Fist
 import AbilityScores as scores
 from AbilityScores import Ability, AbilityIds, AbilityScores
 
@@ -101,10 +101,7 @@ class StatBlock():
     except IndexError:
       raise ValueError("Not a valid attack")
 
-  def getAttack(self,index=None):
-    if not index:
-      return self.currentAttack
-    else:
+  def getAttack(self,index=0):
       try:
         return self.attacks[index]
       except IndexError:
@@ -115,7 +112,7 @@ class StatBlock():
   def abilityCheck(self, ability, advantage='none'):
     base = DnD.rollD20(advantage)
     try:
-      return base + self.abilities[ability]
+      return self.abilities[ability] + base
     except KeyError:
       raise ValueError(f"Invalid ability id {ability}")
 
@@ -151,6 +148,7 @@ class StatBlock():
 # some default test values
 
 base_statblock = StatBlock('Guy', 15, 12, [10,10,10,10,10,10])
+base_statblock.addAttackAction(Fist)
 
 ZennaraStats = StatBlock('Zennara', 51, 20, AbilityScores(17,10,15,8,8,16))
 ZennaraStats.setSpeed(40)

@@ -6,9 +6,16 @@ Started by representing dice as a tuple of (num_dice, dice_value), then extended
 
 Want to continue to extend this to the point where characters and creatures can be easily loaded up and used in combat simulations
 
+## TODO
+  - finish enounter simulation
+  - implement character data parsing using pyparsing!
+  - implement monte carlo simulation
+  - implement simulation configuration files
+  - go through and pretty things up with typing
 
 ## High Level Capabilities
   - Dice Roll Simulation __(core)__
+  - Simulate a combat encouter
   - Nice Abstraction of Characters, Weapons, Etc. __(nice to have)__
   - Graphing / Nice output __(nice to have)__
     - pyplot etc

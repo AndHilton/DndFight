@@ -59,6 +59,10 @@ class Ability():
   def __copy__(self):
     return self.score
 
+  def __add__(self, other):
+    return self.modifier + other
+
+
 
 # namedtuple for representing ability scores
 AbilityScores = namedtuple("AbilityScores",AbilityIds)

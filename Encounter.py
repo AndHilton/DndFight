@@ -1,30 +1,25 @@
 """
-Simulating a combat encounter using StatBlocks
+Rethinking the structure of the Encounter Simulations
 """
+
+# general pylib stuff
 import sys
-from collections import *
-from queue import PriorityQueue
+import random as rand
+from collections import namedtuple
+from itertools import count
 from copy import copy
 
-from StatBlock import StatBlock
+# DnD Fight modules
+from StatBlock import StatBlock, base_statblock
 
-VERBOSE = False
-def logNone(string):
-  pass
+DEBUG_LEVEL = 0
 
-battleLog = logNone
+if DEBUG_LEVEL >= 1:
+    fightLog = print
+else:
+    fightLog = lambda x : None
 
-def set_verbose(verbose=True):
-  global VERBOSE
-  global battleLog
-  if verbose:
-    VERBOSE = True
-    battleLog = print
-  else:
-    VERBOSE = False
-    battleLog = logNone
-
-  """
+"""
   -- Statistics --
   Before Encounter:
   - Number of Units
@@ -41,118 +36,214 @@ def set_verbose(verbose=True):
   - Total Attacks
   - Total Hits
   - Average Hit %
-  """
+"""
 
-## TODO temporarily (?) moving everything to Encounter module while I 
-#       reorganize structure of encounter simulation
-class SimUnit(StatBlock):
-  """
-  Wrapper around the StatBlock to aid in statistic collection
-  """
-  def __init__(self, stats, team):
-    self.name = stats.name
-    self.maxHp = stats.maxHp
-    self.hp = stats.hp
-    self.ac = stats.ac
-    self.speed = stats.speed
-    self.attacks = stats.attacks
-    self.abilities = stats.abilities
-    self.initiative = None
-    self.team = team
-    self.target = None
+"""
+NOTE
+        --Layout--
 
-  def __copy__(self):
-    return SimUnit(copy(self.getStats()),self.team)
+Encounter : handles the highest level interactions
+            - Initiative
+            - Armies
+            - Running the Simulation
+            - End Condition
+            - Eventually maybe a map too, why not
 
-  def getStats(self):
-    currentStats = StatBlock(self.name,
-                             self.maxHp,
-                             self.ac,
-                             self.getAbilityScores())
-    currentStats.hp = self.hp
-    return currentStats
+SimArmy : a collection of SimUnits, encapsulates a "side" of the encounter
+          - collects all units on a side, alive and dead
+          - handles the "objective" of a side (e.g. enemies)
 
+InitiativeOrder : handles the order of SimUnits in a round
+                  - sorted by the InitiativeScore of the Units
+                  - Actively updated as the round progresses
 
-  def rollInitiative(self):
-    if not self.initiative:
-      self.initiative = self.abilityCheck("dex")
-    return self.initiative
+SimUnit : an individual unit in combat, Encapsulates a StatBlock
+          - includes the Unit stats and behavior
+          - handles its own individual turn, and is in charge of its actions
+          - defers to its team for objective (e.g. enemies)          
+"""
+        
 
-  def makeTurn(self):
+class EncounterSim():
     """
-    TODO
-    figure out a way to construct a "turn" as a collection of actions
-    want to future proof this somewhat against extra-attack
-    construct a series of closures?
-    have a member called "action"
+    @brief controller class to handle running an encounter
+    --- Relevant Stats ---
+        - Number of Units
+        - Number of Rounds
+        - Winning Side :
+            - Number of Survivors
+            - Remaining HP
     """
-    pass
 
-  def getTarget(self):
-    if not self.target:
-      self.chooseTarget()
-    return self.target
+    results = namedtuple("results", ['unitTotal', 'roundTotal', 'winner'])
 
-  def chooseTarget(self):
-    # randomly
-    try:
-      self.target = rand.choice(team.enemies)
-    except IndexError:
-      self.target = None
-    return self.target
+    def __init__(self, *armies):
+        # TODO
+        # armies enemies have to be set before hand
+        self.winner = None
+        self.started = False
+        self.initiative = InitiativeOrder()
+        self.sides = armies
+        self.initStats()
 
-  def addEnemies(self, *enemies):
-    self.enemies.extend(enemies)
+    def initStats(self):
+        self.stats = { }
+    
+    def run(self):
+        """
+        # roll initiative
+        # run rounds until done
+        # collect results
+        """
+        self.rollInitiative()
+        countRounds = count(start=1, step=1)
+        # walrus? - while not (done := self.runRound()):
+        while not self.isDone():
+            fightLog(f"round {next(countRounds)}")
+            self.runRound()
+            # TODO update stats
+        fightLog("finished")
+        return self.collectResults()
 
-  def removeEnemy(self, enemy):
-    self.enemies.remove(enemy)
 
+    def rollInitiative(self):
+        """
+        # take the list of all fighters, have them roll initiative
+        """
+        if not self.started:
+            for army in self.sides:
+                self.initiative.add(*army.getUnits())
+            self.started = True
 
-class SimulationArmy():
+    def runRound(self):
+        """
+        # run a round of initiative
+        """
+        if self.started:
+            done = False
+            for unit in self.initiative:
+                unit.survival += 1
+                slain = unit.takeTurn()
+                self.initiative.remove(*slain)
+            done = self.isDone()
+            if done:
+                self.declareWinner()
+            return done
+        else:
+            raise Exception("must roll initiative first")
 
-  """
-  Simulates a "side" of an encouter
+    def isDone(self):
+        """
+        all armies are done
+        """
+        return all([ army.isDone() for army in self.sides])
 
-  Members:
-  list of alive members
-  list of dead members
-  """
-  
-  def __init__(self, statblocks):
-    self.squad = [ SimUnit(stat) for stat in statblocks ]  # TODO : implement the SimUnit Class
-    self.graveyard = []
-    # before encounter
-    self.size = len(statblocks)
-    self.totalHP = sum([unit.hp for unit in statblocks]) # TODO : check unit api
-    self.avgHP = self.totalHP / self.size
-    self.avgAC = sum([unit.ac for unit in statblocks]) / self.size # TODO : check unit api
-    self.currentDamage = 0
-    self.enemies = []
+    def declareWinner(self):
+        """
+        declare the winner
+        """
+        self.winner = [ army for army in self.sides if army.survived() ].pop()
+        fightLog(f"{self.winner} wins")
+        return self.winner
 
-  def addEnemies(self, enemies):
-    for unit in self.squad:
-      unit.addEnemies(enemies)
+    def collectResults(self):
+        """
+        TODO
+        # collect relevant statistics
+        """
+        return self.stats
 
-      
-InitiativeEntry = namedtuple("InitiativeEntry", ["score", "unit"])
-END_INITIATIVE = InitiativeEntry(0, None)
+class SimArmy():
+    """
+    @brief collection of units and 'tactical' logic
+    --- Relevant Stats ---
+        - Total HP
+        - Average HP
+        - Average AC
+        - Total Damage
+        - Average Damage
+        - Average Survival (in Rounds)
+        - Total Attacks
+        - Total Hits
+        - Average Hit %
+    """
+
+    results = namedtuple("results", ['totalHP',
+                                     'avgHp'
+                                     'size',
+                                     'avgAc',
+                                     'totalDmg',
+                                     'avgDmg',
+                                     'avgSurvival',
+                                     'totalAttacks',
+                                     'totalHits',
+                                     'avgHitRate'])
+
+    def __init__(self, unitStats):
+        self.units = set([ SimUnit(stats, self) for stats in unitStats ])
+        self.grave = set( )
+        self.opponents = set( )
+        self.initStats()
+    
+    def initStats(self):
+        """
+        initialize the stats tracker
+        """
+        self.stats = { }
+
+    def isDone(self):
+        """        
+        an army is done when there are no units left or if all of its opponents are done
+        """
+        haveUnits = bool(self.units)
+        haveActiveEnemies = bool(self.getEnemies())
+        return not (haveUnits and haveActiveEnemies)
+
+    def addOpponents(self, *opponents):
+        """
+        adds the given enemy list
+        """
+        self.opponents |= set().union(opponents)
+    
+    def getUnits(self):
+        """
+        return active units
+        """
+        return self.units
+
+    def getEnemies(self):
+        """
+        TODO
+        return our enemies (the set of units from all of our opposing armies)
+        """
+        return list(set().union(*[army.getUnits() for army in self.opponents]))
+        
+    def moveToGrave(self, unit):
+        """
+        moves the given unit from the list of acitve units into the grave
+        """
+        self.units.discard(unit)
+        self.grave.add(unit)
+
+    def survived(self):
+        """
+        returns true if there are any units remaining
+        """
+        return bool(self.units)
+
 
 class InitiativeOrder():
-
   """
-  convenience class to encapsulate going through the order of inititiative
-  
-  basically a priority queue with the ability to update entries.
-  
-  need to be able to loop over each unit in the initiative order
-  until the end of the order is reached
-
-  need to be able to add units in an ordered way (higher initiatives come earlier)
-  need to be able to remove units cleanly from the order
+  @brief container class handle Initiative Order of the Encounter  
+  properties : iterable
+  notes -
+    ~ updates as units are added and removed
   """
 
-  def __init__(self):
-    self.order = []
+  InitiativeEntry = namedtuple("InitiativeEntry", ["score", "unit"])
+
+  def __init__(self, *unitList):
+    self.order = list(unitList)
     self.current = iter(self.order)
     self.complete = False
     
@@ -165,137 +256,160 @@ class InitiativeOrder():
     return next(self.current)
   
   def update(self):
-    def sortKey(unit):
-      return unit.initiative
-    self.order.sort(key=sortKey, reverse=True)
+    def initiativeSortKey(unit):
+      return unit.initiative()
+    self.order.sort(key=initiativeSortKey, reverse=True)
 
   def top(self):
     self.update()
     self.current = iter(self.order)
     
-  def add(self, unit):
-    self.order.append(unit)
+  def add(self, *units):
+    self.order.extend(units)
     self.update()
 
-  def remove(self, unit):
-    self.order.remove(unit)
+  def remove(self, *units):
+    for unit in units:
+        self.order.remove(unit)
     self.update()
+    return units
 
 
-def simualateOneRound(initiative):
-  """
-  goes through initiative order and simulates units actions
-  """
-  done = false
-  for unit in initiative:
-    unit.survival += 1
-    # get current enemy, maybe this happens internal to the sim unit
-    # attack enemy
-    # NOTE let each unit decide what their turn looks like,
-    #  simulation just iterates until the unit determines it's turn is over
-    # TODO future proof against multi-attack, other kinds of actions
-    # TODO formalize removing a unit
-    # update current side totals
-    # enemy dead ? remove from initiative order
-    pass
-  done = false # TODO : is one side dead
-  return done
+class SimUnit(StatBlock):
+    """
+    @brief a single unit in the encounter, handles logic of "taking a turn"
+    --- Relevant Stats ---
+        - HP
+        - AC
+        - Initiative Order
+        - Survival (in Rounds)
+        - Number of Attacks
+        - Number of Hits
+        - Hit %
+        - Average Damage / Hit
+    """
+    
+    results = namedtuple("results", ['hp',
+                                     'ac',
+                                     'initiative',
+                                     'survival',
+                                     'attacks',
+                                     'hits',
+                                     'hitRate',
+                                     'dmg'])
 
-"""
-* Encounter Statistics :
+    def __init__(self, stats, team):
+        self.name = stats.name
+        self.maxHp = stats.maxHp
+        self.hp = stats.hp
+        self.ac = stats.ac
+        self.speed = stats.speed
+        self.attacks = stats.attacks
+        self.abilities = stats.abilities
+        self.team = team
+        self.survival = 0
+        self.initiativeScore = None
+        self.target = None
+        self.currentAttack = stats.getAttack()
+        self.initStats()
+    
+    def initStats(self):
+        """
+        initialize the stats tracker
+        """
+        self.stats = { }
 
-** Stats By Encounter :
-*** - Number of Units
-*** - Winning Side :
-**** - Number of Survivors
-**** - Remaining HP
-*** - Number of Rounds
+    def rollInitiative(self):
+        """
+        rolls initiative if it has not been set
 
-** Stats By Side :
-*** - Total HP
-*** - Average HP
-*** - Average AC
-*** - Total Damage
-*** - Average Damage
-*** - Average Survival (in Rounds)
-*** - Total Attacks
-*** - Total Hits
-*** - Average Hit %
+        @return : the initiative score
+        """
+        self.initiativeScore = self.abilityCheck('dex')
+        return self.initiativeScore
 
-** Stats By Unit :
-*** - HP
-*** - AC
-*** - Initiative Order
-*** - Survival (in Rounds)
-*** - Number of Attacks
-*** - Number of Hits
-*** - Hit %
-*** - Average Damage / Hit
-"""
+    def initiative(self):
+        if not self.initiativeScore:
+            self.rollInitiative()
+        return self.initiativeScore
 
-# create data structs for stats/results
+    def takeTurn(self):
+        """
+        attack your current target (select one if None)
+        if they die, return them
+        if we have mulit-attack go through 
+        return a list of enemies we killed
+        TODO factor in multiattack
+        """
+        if not self.target or self.target.isDead():
+            self.selectTarget()
+        slain = [ ]
+        if self.target:
+            target = self.target
+            attackAction = self.getAttack()
+            attackRoll = attackAction.rollAttack()
+            if (attackRoll.isCrit) or (attackRoll.result >= self.target.ac):
+                fightLog(f"{self.name} {'critical' if attackRoll.isCrit else ''} hit")
+                dmg = attackAction.rollDamage(attackRoll.isCrit)
+                isDead = self.__class__.dealDamage(self.target,dmg)
+                if isDead:
+                    slain.append(target)
+                    self.target = None
+        return slain
+    
+    def enemies(self):
+        """
+        right now our enemies are exactly our team's enemies
+        """
+        return self.team.getEnemies()
 
-def simulateBasicEncounter(*armyStats):
+    def selectTarget(self):
+        """
+        right now randomly select from enemies()
+        """
+        try:
+            self.target = rand.choice(self.enemies())
+        except IndexError:
+            self.target = None
+        return self.target
 
-  # take input of the sides (as StatBlocks),
-  # create a list of simulation entities for each side
+    @staticmethod
+    def dealDamage(target, damage):
+        """
+        deals damage to the target
+        """
+        if target:
+            target.takeDamage(damage)
+        return target.isDead()
 
-  # each entity should know what there enemies are
+    def takeDamage(self, damage):
+        """
+        reduce hp by amount of damage
+        if we fall to 0 hp or below die()
+        return True if fatal, False otherwise
+        """
+        fightLog(f"{self.name} took {damage} dmg")
+        self.hp -= damage
+        if self.hp <= 0:
+            self.die()
+            return True
+        else:
+            return False
+        
 
-  # assign an initiative order randomly (1d20 + dex)
+    def die(self):
+        """
+        move yourself to your team's graveyard
+        """
+        fightLog(f"{self.name} has died")
+        self.team.moveToGrave(self)
 
-  # while not done...
-  ## simulate one round
-  ## done?
-  
-  # return StatsToCapture
 
-  """
-  TODO
-  1 - initialize all sides, roll initiative
-  2 - initalize return data
-  3 - while encounter not done
-  4 - run a single round of initiative
-  """
-  armies = [ SimulationArmy(stats) for stats in armyStats ]
-
-  # initialize the armies
-  #   - make sure they have all the appropriate enemies
-  initiative = InitiativeOrder()
-  # determine initiative order
-  done = False
-  while not done:
-    done = simualateOneRound(initiative)
-  # collect results
-  results = None
-  return results
-  
 if __name__ == "__main__":
-  set_verbose(True)
-  import random
-
-  class Dummy():
-
-    def __init__(self, name, initiative):
-      self.name = name
-      self.initiative = initiative
-      self.survival = 0
-
-    def __str__(self):
-      return f"hello i'm {self.name} at initiative {self.initiative}"
-
-  
-  def setup():
-    foo = InitiativeOrder()
-    names = [ f"name{n}" for n in range(20) ]
-    scores = [ n for n in range(11,17) ]
-    units = [ Dummy(name, random.choice(scores)) for name in names ]
-    foo.order.append(Dummy("test",1))
-    guy = units[4]
-    guy.name = "guy"
-    for dummy in units:
-      foo.add(dummy)
-    return foo, names, scores, units, guy
-
-  foo, names, scores, dummies, guy = setup()
-  
+    dummyStats = base_statblock
+    teamFoo = SimArmy([dummyStats for x in range(8)])
+    teamBar = SimArmy([dummyStats for x in range(8)])
+    teamFoo.addOpponents(teamBar)
+    teamBar.addOpponents(teamFoo)
+    sim = EncounterSim(teamFoo, teamBar)
+    sim.run()

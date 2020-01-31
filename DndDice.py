@@ -28,6 +28,7 @@ def vPrint(string):
 
 AttackRoll = namedtuple("AttackRoll",['result','isCrit'])
 
+# TODO make the value required, number optional
 class Dice(namedtuple('DamageDice',['num','value'])):
   """
   representing dice as number of dice to roll and the max value on the dice
@@ -46,21 +47,32 @@ class Dice(namedtuple('DamageDice',['num','value'])):
   def __str__(self):
     return f"{self.num}d{self.value}"
 
-D20 = Dice(1,20)
+# TODO @dataclass DiceBag
+#       easy way to get the standard dice
 
-def rollOnce():
-  return D20.roll()
+D100 = Dice(1,100)
+D20  = Dice(1,20)
+D12  = Dice(1,12)
+D10  = Dice(1,10)
+D8   = Dice(1,8)
+D6   = Dice(1,6)
 
-def rollAdvantage():
-  return max(D20.roll(),D20.roll())
+ADVANTAGE    = 'advantage'
+DISADVANTAGE = 'disadvantage'
 
-def rollDisadvantage():
-  return min(D20.roll(),D20.roll())
+def rollOnce(dice=D20):
+  return dice.roll()
 
-def rollD20(advantage):
-  if advantage is 'advantage':
+def rollAdvantage(dice=D20):
+  return max(dice.roll(),dice.roll())
+
+def rollDisadvantage(dice=D20):
+  return min(dice.roll(),dice.roll())
+
+def rollD20(advantage=None):
+  if advantage is ADVANTAGE:
     base = rollAdvantage()
-  elif advantage is 'disadvantage':
+  elif advantage is DISADVANTAGE:
     base = rollDisadvantage()
   else:
     base = rollOnce()
