@@ -145,7 +145,6 @@ class EncounterSim():
         declare the winner
         """
         self.winner = [ army for army in self.sides if army.survived() ].pop()
-        fightLog(f"{self.winner} wins")
         return self.winner
 
     def collectResults(self):
