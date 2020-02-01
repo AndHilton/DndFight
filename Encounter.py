@@ -12,7 +12,7 @@ from copy import copy
 # DnD Fight modules
 from StatBlock import StatBlock, base_statblock
 
-DEBUG_LEVEL = 0
+DEBUG_LEVEL = 1
 
 if DEBUG_LEVEL >= 1:
     fightLog = print
@@ -96,10 +96,11 @@ class EncounterSim():
         # collect results
         """
         self.rollInitiative()
-        countRounds = count(start=1, step=1)
+        countRounds = count(1,1)
         # walrus? - while not (done := self.runRound()):
         while not self.isDone():
-            fightLog(f"round {next(countRounds)}")
+            self.rounds = next(countRounds)
+            fightLog(f"round {self.rounds}")
             self.runRound()
             # TODO update stats
         fightLog("finished")
@@ -111,6 +112,7 @@ class EncounterSim():
         # take the list of all fighters, have them roll initiative
         """
         if not self.started:
+            self.rounds = 0
             for army in self.sides:
                 self.initiative.add(*army.getUnits())
             self.started = True
@@ -122,7 +124,7 @@ class EncounterSim():
         if self.started:
             done = False
             for unit in self.initiative:
-                unit.survival += 1
+                unit.survival = self.rounds
                 slain = unit.takeTurn()
                 self.initiative.remove(*slain)
             done = self.isDone()
