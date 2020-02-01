@@ -4,3 +4,6 @@ foo.py
 *~
 #.*#
 .code-workspace.code-workspace
+*.code-workspace
+.vscode
+*.pyc

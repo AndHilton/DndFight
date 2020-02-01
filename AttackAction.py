@@ -62,3 +62,4 @@ def attackFromString(string):
   dmgType = fields[4]
   return AttackAction(name,dice,modifiers,dmgType)
 
+Fist = AttackAction('fist', DnD.Dice(1,4), (3,2), 'bludgeoning')

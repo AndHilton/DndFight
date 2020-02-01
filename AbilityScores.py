@@ -1,6 +1,7 @@
 """
 encapsulates ability scores, and modifiers
 """
+from copy import *
 
 from collections import namedtuple
 from DndDice import Dice
@@ -55,6 +56,13 @@ class Ability():
   def __str__(self):
     return f"({self.score}, {modStr(self.modifier)})"
 
+  def __copy__(self):
+    return self.score
+
+  def __add__(self, other):
+    return self.modifier + other
+
+
 
 # namedtuple for representing ability scores
 AbilityScores = namedtuple("AbilityScores",AbilityIds)
@@ -70,6 +78,7 @@ def assignScores(scores):
 standard_score_distribution = [ 15, 14, 13, 12, 10, 8 ]
 
 def assignStandardScores(abilityPriority):
+  # TODO take the given priorities, assign standard distribution
   pass
 
 def roll4TakeTop():
