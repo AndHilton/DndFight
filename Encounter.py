@@ -12,7 +12,7 @@ from copy import copy
 # DnD Fight modules
 from StatBlock import StatBlock, base_statblock
 
-DEBUG_LEVEL = 1
+DEBUG_LEVEL = 0
 
 if DEBUG_LEVEL >= 1:
     fightLog = print
@@ -106,6 +106,15 @@ class EncounterSim():
         fightLog("finished")
         return self.collectResults()
 
+
+    def addUnits(self, team, *units):
+        if team not in self.sides:
+            raise ValueError(f"{team} not in simulation")
+        else:
+            newUnits = [unit if isinstance(unit, SimUnit)
+                            else SimUnit(unit, team) for unit in units]
+            team.addUnits(*newUnits)
+            self.initiative.add(*newUnits)
 
     def rollInitiative(self):
         """
@@ -206,6 +215,15 @@ class SimArmy():
         """
         self.opponents |= set().union(opponents)
     
+    def addUnits(self, *units):
+        unitList = [ ]
+        for unit in units:
+            if not issubclass(unit.__class__, StatBlock):
+                raise ValueError(f"{unit} ")
+            else:
+                unitList.append(unit if isinstance(unit, SimUnit) else SimUnit(unit, self))
+        self.units |= set(unitList)
+    
     def getUnits(self):
         """
         return active units
@@ -252,6 +270,9 @@ class InitiativeOrder():
     aCopy = copy(self)
     aCopy.top()
     return aCopy
+
+  def __len__(self):
+    return len(self.order)
   
   def __next__(self):
     return next(self.current)

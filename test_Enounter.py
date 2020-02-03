@@ -179,6 +179,39 @@ class SimArmyTest(test.TestCase):
         self.teamFoo.addOpponents(self.teamBar)
         self.assertIn(self.unitBar, self.teamFoo.getEnemies())
 
+    def test_addUnits(self):
+        # TODO
+        """
+        invariant - all units in team are a subclass of SimUnit
+        positive cases -
+        * add SimUnit
+        ** assert in team
+        * add StatBlock
+        ** assert something was added
+        ** assert everything in units is SimUnit
+        
+        negative cases -
+        * add object not issubclass(StatBlock)
+        ** raise ValueError
+        """
+        mockUnit = MagicMock(spec=SimUnit)
+        self.assertNotIn(mockUnit, self.teamFoo.units)
+        self.teamFoo.addUnits(mockUnit)
+        self.assertIn(mockUnit, self.teamFoo.units)
+        beforeLength = len(self.teamFoo.units)
+        self.teamFoo.addUnits(base_statblock)
+        afterLegnth = len(self.teamFoo.units)
+        self.assertGreater(afterLegnth, beforeLength)
+        self.assertTrue(all([isinstance(unit, SimUnit) for unit in self.teamFoo.units]))
+        # test adding many units
+        beforeLength = len(self.teamFoo.units)
+        adding = 3
+        self.teamFoo.addUnits(*[base_statblock for x in range(adding)])
+        afterLength = len(self.teamFoo.units)
+        self.assertEqual(beforeLength + adding, afterLength)
+        with self.assertRaises(ValueError):
+            self.teamFoo.addUnits(object())
+
     def test_moveToGrave(self):
         for unit in list(self.teamFoo.units):
             unit.die()
@@ -252,6 +285,28 @@ class TwoSidedEncounterTest(test.TestCase):
         for unit in list(self.teamBar.getUnits()):
             unit.die()
         self.assertTrue(self.sim.runRound())
+
+    def test_addUnits(self):
+        # TODO
+        """
+        positive case:
+        * add SimUnit/StatBlock to teams in the encounter
+        ** before - unit not in team, initiative
+        ** assert unit in team
+        ** assert unit in initiative
+        negative case:
+        * add SimUnit to team not in the encounter
+        ** assert raises ValueError
+        """
+        baz = SimUnit(base_statblock, self.teamFoo)
+        self.assertNotIn(baz, self.teamFoo.units)
+        self.assertNotIn(baz, self.sim.initiative)
+        self.sim.addUnits(self.teamFoo, baz)
+        self.assertIn(baz, self.teamFoo.units)
+        self.assertIn(baz,self.sim.initiative)
+        mockTeam = MagicMock(spec=SimArmy)
+        with self.assertRaises(ValueError):
+            self.sim.addUnits(mockTeam, baz)
 
     def test_run(self):
         self.assertFalse(self.sim.isDone())
